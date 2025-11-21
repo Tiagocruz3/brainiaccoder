@@ -1,5 +1,6 @@
 import type { ServerBuild } from '@remix-run/cloudflare';
 import { createPagesFunctionHandler } from '@remix-run/cloudflare-pages';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // Import the server build
 let serverBuild: ServerBuild;
@@ -15,28 +16,26 @@ const handler = createPagesFunctionHandler({
   build: serverBuild,
 });
 
-// Vercel Edge Function handler
-export const config = {
-  runtime: 'edge',
-};
-
-export default async function edgeHandler(request: Request): Promise<Response> {
+// Use Node.js runtime for better compatibility
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    // Get the URL from the request
-    const url = new URL(request.url);
-    
-    // Create a proper Cloudflare Pages context
-    // The handler expects a PagesFunction context
+    // Convert Vercel request to Fetch API Request
+    const url = new URL(req.url || '/', `https://${req.headers.host || 'localhost'}`);
+    const request = new Request(url.toString(), {
+      method: req.method || 'GET',
+      headers: req.headers as HeadersInit,
+      body: req.method !== 'GET' && req.method !== 'HEAD' && req.body 
+        ? (typeof req.body === 'string' ? req.body : JSON.stringify(req.body))
+        : undefined,
+    });
+
+    // Create Cloudflare Pages context
     const context: any = {
-      request: new Request(url.toString(), {
-        method: request.method,
-        headers: request.headers,
-        body: request.method !== 'GET' && request.method !== 'HEAD' ? await request.clone().arrayBuffer() : undefined,
-      }),
-      env: {},
+      request,
+      env: process.env as any,
       waitUntil: (promise: Promise<any>) => {
-        // In Edge Runtime, we can't truly wait, but we can start the promise
-        promise.catch(() => {});
+        // Start the promise but don't block
+        promise.catch(console.error);
       },
       passThroughOnException: () => {},
       next: () => Promise.resolve(new Response()),
@@ -47,23 +46,29 @@ export default async function edgeHandler(request: Request): Promise<Response> {
 
     const response = await handler(context);
     
-    // Ensure proper headers for HTML responses
-    if (response.headers.get('content-type')?.includes('text/html')) {
-      const headers = new Headers(response.headers);
-      headers.set('Content-Type', 'text/html; charset=utf-8');
-      return new Response(response.body, {
-        status: response.status,
-        statusText: response.statusText,
-        headers,
-      });
-    }
+    // Convert Fetch Response to Vercel response
+    const body = await response.text();
     
-    return response;
+    // Set status
+    res.status(response.status);
+    
+    // Copy headers
+    response.headers.forEach((value, key) => {
+      // Skip some headers that Vercel handles
+      if (key.toLowerCase() !== 'content-encoding' && key.toLowerCase() !== 'transfer-encoding') {
+        res.setHeader(key, value);
+      }
+    });
+    
+    // Send response
+    res.send(body);
   } catch (error) {
     console.error('Handler error:', error);
-    return new Response(`Internal Server Error: ${error instanceof Error ? error.message : String(error)}`, { 
-      status: 500,
-      headers: { 'Content-Type': 'text/plain' }
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Error details:', errorMessage, error);
+    res.status(500).json({ 
+      error: 'Internal Server Error',
+      message: errorMessage 
     });
   }
 }
