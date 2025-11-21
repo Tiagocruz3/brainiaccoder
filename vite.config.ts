@@ -18,6 +18,16 @@ export default defineConfig((config) => {
     },
     build: {
       target: 'esnext',
+      sourcemap: true,
+      rollupOptions: {
+        onwarn(warning, warn) {
+          // Suppress sourcemap warnings for simple re-export files
+          if (warning.code === 'SOURCEMAP_ERROR' || warning.message?.includes('sourcemap')) {
+            return;
+          }
+          warn(warning);
+        },
+      },
     },
     plugins: [
       nodePolyfills({
