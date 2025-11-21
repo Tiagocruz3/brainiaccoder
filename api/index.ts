@@ -1,6 +1,5 @@
 import type { ServerBuild } from '@remix-run/cloudflare';
 import { createPagesFunctionHandler } from '@remix-run/cloudflare-pages';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // Import the server build
 let serverBuild: ServerBuild;
@@ -16,11 +15,14 @@ const handler = createPagesFunctionHandler({
   build: serverBuild,
 });
 
-// Use Node.js runtime for better compatibility
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+// Vercel Node.js function handler
+export default async function vercelHandler(req: any, res: any) {
   try {
     // Convert Vercel request to Fetch API Request
-    const url = new URL(req.url || '/', `https://${req.headers.host || 'localhost'}`);
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    const host = req.headers.host || req.headers['x-forwarded-host'] || 'localhost';
+    const url = new URL(req.url || '/', `${protocol}://${host}`);
+    
     const request = new Request(url.toString(), {
       method: req.method || 'GET',
       headers: req.headers as HeadersInit,
@@ -55,7 +57,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Copy headers
     response.headers.forEach((value, key) => {
       // Skip some headers that Vercel handles
-      if (key.toLowerCase() !== 'content-encoding' && key.toLowerCase() !== 'transfer-encoding') {
+      const lowerKey = key.toLowerCase();
+      if (lowerKey !== 'content-encoding' && lowerKey !== 'transfer-encoding' && lowerKey !== 'content-length') {
         res.setHeader(key, value);
       }
     });
@@ -65,7 +68,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (error) {
     console.error('Handler error:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Error details:', errorMessage, error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error('Error details:', errorMessage);
+    if (errorStack) {
+      console.error('Error stack:', errorStack);
+    }
     res.status(500).json({ 
       error: 'Internal Server Error',
       message: errorMessage 
