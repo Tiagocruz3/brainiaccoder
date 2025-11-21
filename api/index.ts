@@ -17,7 +17,7 @@ const handler = createPagesFunctionHandler({
 
 // Vercel Edge Function handler
 export const config = {
-  runtime: 'edge',
+  runtime: '@vercel/edge',
 };
 
 export default async function edgeHandler(request: Request): Promise<Response> {

@@ -2,11 +2,6 @@
   "buildCommand": "pnpm run build",
   "outputDirectory": "build/client",
   "framework": null,
-  "functions": {
-    "api/index.ts": {
-      "runtime": "edge"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
