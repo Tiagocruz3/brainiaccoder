@@ -22,20 +22,49 @@ export const config = {
 
 export default async function edgeHandler(request: Request): Promise<Response> {
   try {
-    // Create a Cloudflare Pages context compatible object
-    const context = {
-      request,
+    // Get the URL from the request
+    const url = new URL(request.url);
+    
+    // Create a proper Cloudflare Pages context
+    // The handler expects a PagesFunction context
+    const context: any = {
+      request: new Request(url.toString(), {
+        method: request.method,
+        headers: request.headers,
+        body: request.method !== 'GET' && request.method !== 'HEAD' ? await request.clone().arrayBuffer() : undefined,
+      }),
       env: {},
-      waitUntil: (promise: Promise<any>) => promise,
+      waitUntil: (promise: Promise<any>) => {
+        // In Edge Runtime, we can't truly wait, but we can start the promise
+        promise.catch(() => {});
+      },
       passThroughOnException: () => {},
       next: () => Promise.resolve(new Response()),
       data: {},
+      params: {},
+      functionPath: url.pathname,
     };
 
-    return await handler(context as any);
+    const response = await handler(context);
+    
+    // Ensure proper headers for HTML responses
+    if (response.headers.get('content-type')?.includes('text/html')) {
+      const headers = new Headers(response.headers);
+      headers.set('Content-Type', 'text/html; charset=utf-8');
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
+    }
+    
+    return response;
   } catch (error) {
     console.error('Handler error:', error);
-    return new Response('Internal Server Error', { status: 500 });
+    return new Response(`Internal Server Error: ${error instanceof Error ? error.message : String(error)}`, { 
+      status: 500,
+      headers: { 'Content-Type': 'text/plain' }
+    });
   }
 }
 
