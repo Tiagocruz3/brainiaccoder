@@ -18,7 +18,7 @@ export default defineConfig((config) => {
     },
     build: {
       target: 'esnext',
-      sourcemap: true,
+      sourcemap: config.mode === 'development',
       rollupOptions: {
         onwarn(warning, warn) {
           // Suppress sourcemap warnings for simple re-export files
