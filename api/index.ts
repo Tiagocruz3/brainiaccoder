@@ -1,5 +1,5 @@
 import type { ServerBuild } from '@remix-run/cloudflare';
-import { createPagesFunctionHandler } from '@remix-run/cloudflare-pages';
+import { createRequestHandler } from '@remix-run/cloudflare-pages';
 
 // Import the server build
 let serverBuild: ServerBuild;
@@ -11,8 +11,13 @@ try {
   throw error;
 }
 
-const handler = createPagesFunctionHandler({
+// Create request handler that works with standard Fetch API (compatible with Vercel Edge Runtime)
+const requestHandler = createRequestHandler({
   build: serverBuild,
+  mode: process.env.NODE_ENV || 'production',
+  getLoadContext: () => ({
+    env: process.env as any,
+  }),
 });
 
 // Vercel Edge Function handler
@@ -22,31 +27,20 @@ export const config = {
 
 export default async function edgeHandler(request: Request): Promise<Response> {
   try {
-    // Get the URL from the request
-    const url = new URL(request.url);
-    
-    // Create a Cloudflare Pages context
-    const context: any = {
-      request,
-      env: {},
-      waitUntil: (promise: Promise<any>) => {
-        // In Edge Runtime, we can't truly wait, but we can start the promise
-        promise.catch(console.error);
-      },
-      passThroughOnException: () => {},
-      next: () => Promise.resolve(new Response()),
-      data: {},
-      params: {},
-      functionPath: url.pathname,
-    };
-
-    const response = await handler(context);
+    // Use the request handler directly with Fetch API Request/Response
+    // This is compatible with Vercel Edge Runtime
+    const response = await requestHandler(request);
     
     // Return the response directly (Edge Runtime uses Fetch API)
     return response;
   } catch (error) {
     console.error('Handler error:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error('Error details:', errorMessage);
+    if (errorStack) {
+      console.error('Error stack:', errorStack);
+    }
     return new Response(`Internal Server Error: ${errorMessage}`, { 
       status: 500,
       headers: { 'Content-Type': 'text/plain' }

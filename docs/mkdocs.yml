@@ -39,7 +39,7 @@ extra:
   generator: false
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/stackblitz-labs/Brainiac Coder
+      link: https://github.com/stackblitz-labs/brainiac-coder
       name: Brainiac Coder
     - icon: fontawesome/brands/discourse
       link: https://thinktank.ottomator.ai/
@@ -48,7 +48,7 @@ extra:
       link: https://x.com/brainiac_coder
       name: Brainiac Coder on X
     - icon: fontawesome/brands/bluesky
-      link: https://bsky.app/profile/Brainiac Coder
+      link: https://bsky.app/profile/brainiac-coder
       name: Brainiac Coder on Bluesky
 
 markdown_extensions:
