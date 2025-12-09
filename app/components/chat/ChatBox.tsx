@@ -167,14 +167,16 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
         </div>
       )}
       <div
-        className={classNames('relative shadow-xs border border-bolt-elements-borderColor backdrop-blur rounded-lg')}
+        className={classNames(
+          'relative bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor rounded-xl overflow-hidden',
+          'shadow-md transition-all duration-200 hover:shadow-lg',
+        )}
       >
         <textarea
           ref={props.textareaRef}
           className={classNames(
-            'w-full pl-4 pt-4 pr-16 outline-none resize-none text-bolt-elements-textPrimary placeholder-bolt-elements-textTertiary bg-transparent text-sm',
+            'w-full pl-5 pt-5 pr-20 pb-4 outline-none resize-none text-bolt-elements-textPrimary placeholder-bolt-elements-textTertiary bg-transparent text-sm',
             'transition-all duration-200',
-            'hover:border-bolt-elements-focus',
           )}
           onDragEnter={(e) => {
             e.preventDefault();
@@ -236,7 +238,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
             minHeight: props.TEXTAREA_MIN_HEIGHT,
             maxHeight: props.TEXTAREA_MAX_HEIGHT,
           }}
-          placeholder={props.chatMode === 'build' ? 'How can Bolt help you today?' : 'What would you like to discuss?'}
+          placeholder={props.chatMode === 'build' ? 'Ask Brainiac Coder to create...' : 'What would you like to discuss?'}
           translate="no"
         />
         <ClientOnly>
@@ -258,75 +260,61 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
             />
           )}
         </ClientOnly>
-        <div className="flex justify-between items-center text-sm p-4 pt-2">
-          <div className="flex gap-1 items-center">
-            <ColorSchemeDialog designScheme={props.designScheme} setDesignScheme={props.setDesignScheme} />
-            <McpTools />
-            <IconButton title="Upload file" className="transition-all" onClick={() => props.handleFileUpload()}>
-              <div className="i-ph:paperclip text-xl"></div>
-            </IconButton>
+        <div className="flex justify-between items-center text-sm px-5 pb-4 pt-2 border-t border-bolt-elements-borderColor bg-bolt-elements-background-depth-1">
+          <div className="flex gap-2 items-center">
             <IconButton
-              title="Enhance prompt"
-              disabled={props.input.length === 0 || props.enhancingPrompt}
-              className={classNames('transition-all', props.enhancingPrompt ? 'opacity-100' : '')}
-              onClick={() => {
-                props.enhancePrompt?.();
-                toast.success('Prompt enhanced!');
-              }}
+              title="Attach file"
+              className="transition-all hover:bg-bolt-elements-background-depth-3 rounded-lg px-3 py-2"
+              onClick={() => props.handleFileUpload()}
             >
-              {props.enhancingPrompt ? (
-                <div className="i-svg-spinners:90-ring-with-bg text-bolt-elements-loader-progress text-xl animate-spin"></div>
-              ) : (
-                <div className="i-bolt:stars text-xl"></div>
-              )}
+              <div className="i-ph:paperclip text-lg"></div>
+              <span className="text-xs ml-1">Attach</span>
             </IconButton>
-
-            <SpeechRecognitionButton
-              isListening={props.isListening}
-              onStart={props.startListening}
-              onStop={props.stopListening}
-              disabled={props.isStreaming}
-            />
+            <ColorSchemeDialog designScheme={props.designScheme} setDesignScheme={props.setDesignScheme} />
             {props.chatStarted && (
               <IconButton
-                title="Discuss"
+                title="Chat mode"
                 className={classNames(
-                  'transition-all flex items-center gap-1 px-1.5',
+                  'transition-all hover:bg-bolt-elements-background-depth-3 rounded-lg px-3 py-2 flex items-center gap-1.5',
                   props.chatMode === 'discuss'
-                    ? '!bg-bolt-elements-item-backgroundAccent !text-bolt-elements-item-contentAccent'
-                    : 'bg-bolt-elements-item-backgroundDefault text-bolt-elements-item-contentDefault',
+                    ? 'bg-bolt-elements-background-depth-3'
+                    : 'bg-transparent',
                 )}
                 onClick={() => {
                   props.setChatMode?.(props.chatMode === 'discuss' ? 'build' : 'discuss');
                 }}
               >
-                <div className={`i-ph:chats text-xl`} />
-                {props.chatMode === 'discuss' ? <span>Discuss</span> : <span />}
+                <div className="i-ph:chats text-lg" />
+                <span className="text-xs">Chat</span>
               </IconButton>
             )}
+            <McpTools />
             <IconButton
               title="Model Settings"
-              className={classNames('transition-all flex items-center gap-1', {
-                'bg-bolt-elements-item-backgroundAccent text-bolt-elements-item-contentAccent':
-                  props.isModelSettingsCollapsed,
-                'bg-bolt-elements-item-backgroundDefault text-bolt-elements-item-contentDefault':
-                  !props.isModelSettingsCollapsed,
-              })}
+              className={classNames(
+                'transition-all flex items-center gap-1.5 rounded-lg px-3 py-2',
+                {
+                  'bg-bolt-elements-background-depth-3': !props.isModelSettingsCollapsed,
+                  'bg-transparent hover:bg-bolt-elements-background-depth-3': props.isModelSettingsCollapsed,
+                },
+              )}
               onClick={() => props.setIsModelSettingsCollapsed(!props.isModelSettingsCollapsed)}
               disabled={!props.providerList || props.providerList.length === 0}
             >
               <div className={`i-ph:caret-${props.isModelSettingsCollapsed ? 'right' : 'down'} text-lg`} />
-              {props.isModelSettingsCollapsed ? <span className="text-xs">{props.model}</span> : <span />}
+              {props.isModelSettingsCollapsed && <span className="text-xs">{props.model}</span>}
             </IconButton>
           </div>
-          {props.input.length > 3 ? (
-            <div className="text-xs text-bolt-elements-textTertiary">
-              Use <kbd className="kdb px-1.5 py-0.5 rounded bg-bolt-elements-background-depth-2">Shift</kbd> +{' '}
-              <kbd className="kdb px-1.5 py-0.5 rounded bg-bolt-elements-background-depth-2">Return</kbd> a new line
-            </div>
-          ) : null}
-          <SupabaseConnection />
-          <ExpoQrModal open={props.qrModalOpen} onClose={() => props.setQrModalOpen(false)} />
+          <div className="flex items-center gap-3">
+            {props.input.length > 3 ? (
+              <div className="text-xs text-bolt-elements-textTertiary">
+                <kbd className="kdb px-1.5 py-0.5 rounded bg-bolt-elements-background-depth-2">Shift</kbd> +{' '}
+                <kbd className="kdb px-1.5 py-0.5 rounded bg-bolt-elements-background-depth-2">Enter</kbd> for new line
+              </div>
+            ) : null}
+            <SupabaseConnection />
+            <ExpoQrModal open={props.qrModalOpen} onClose={() => props.setQrModalOpen(false)} />
+          </div>
         </div>
       </div>
     </div>

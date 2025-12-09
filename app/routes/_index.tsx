@@ -4,6 +4,7 @@ import { BaseChat } from '~/components/chat/BaseChat';
 import { Chat } from '~/components/chat/Chat.client';
 import { Header } from '~/components/header/Header';
 import { ModernLayout } from '~/components/layout/ModernLayout';
+import { MyProjectsClient } from '~/components/projects/MyProjects';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Brainiac Coder' }, { name: 'description', content: 'Talk with Brainiac Coder, an AI assistant from StackBlitz' }];
@@ -20,8 +21,13 @@ export const loader = () => json({});
 export default function Index() {
   return (
     <ModernLayout>
-      <Header />
-      <ClientOnly fallback={<BaseChat />}>{() => <Chat />}</ClientOnly>
+      <div className="flex flex-col h-full">
+        <Header />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <ClientOnly fallback={<BaseChat />}>{() => <Chat />}</ClientOnly>
+          <MyProjectsClient />
+        </div>
+      </div>
     </ModernLayout>
   );
 }
