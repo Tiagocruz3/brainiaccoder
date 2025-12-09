@@ -53,7 +53,7 @@ function CurrentDateTime() {
   }, []);
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border-b border-gray-100 dark:border-gray-800/50">
+    <div className="flex items-center gap-2 px-4 py-2 text-sm text-bolt-elements-textSecondary border-b border-bolt-elements-borderColor bg-bolt-elements-background-depth-1">
       <div className="h-4 w-4 i-ph:clock opacity-80" />
       <div className="flex gap-2">
         <span>{dateTime.toLocaleDateString()}</span>
@@ -63,11 +63,15 @@ function CurrentDateTime() {
   );
 }
 
-export const Menu = () => {
+interface MenuProps {
+  alwaysVisible?: boolean;
+}
+
+export const Menu = ({ alwaysVisible = false }: MenuProps = {}) => {
   const { duplicateCurrentChat, exportChat } = useChatHistory();
   const menuRef = useRef<HTMLDivElement>(null);
   const [list, setList] = useState<ChatHistoryItem[]>([]);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(alwaysVisible);
   const [dialogContent, setDialogContent] = useState<DialogContent>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const profile = useStore(profileStore);
@@ -326,30 +330,42 @@ export const Menu = () => {
     <>
       <motion.div
         ref={menuRef}
-        initial="closed"
+        initial={alwaysVisible ? 'open' : 'closed'}
         animate={open ? 'open' : 'closed'}
         variants={menuVariants}
         style={{ width: '340px' }}
         className={classNames(
-          'flex selection-accent flex-col side-menu fixed top-0 h-full rounded-r-2xl',
-          'bg-white dark:bg-gray-950 border-r border-bolt-elements-borderColor',
+          'flex selection-accent flex-col side-menu',
+          alwaysVisible
+            ? 'relative h-full rounded-none'
+            : 'fixed top-0 h-full rounded-r-2xl',
+          'bg-bolt-elements-background-depth-1 border-r border-bolt-elements-borderColor',
           'shadow-sm text-sm',
           isSettingsOpen ? 'z-40' : 'z-sidebar',
         )}
       >
-        <div className="h-12 flex items-center justify-between px-4 border-b border-gray-100 dark:border-gray-800/50 bg-gray-50/50 dark:bg-gray-900/50 rounded-tr-2xl">
-          <div className="text-gray-900 dark:text-white font-medium"></div>
+        <div
+          className={classNames(
+            'h-14 flex items-center justify-between px-4 border-b border-bolt-elements-borderColor',
+            alwaysVisible ? 'rounded-none' : 'rounded-tr-2xl',
+            'bg-bolt-elements-background-depth-1',
+          )}
+        >
+          <div className="flex items-center gap-2">
+            <div className="i-ph:robot text-xl text-bolt-elements-textPrimary" />
+            <span className="font-semibold text-sm text-bolt-elements-textPrimary">Brainiac Coder</span>
+          </div>
           <div className="flex items-center gap-3">
             <HelpButton onClick={() => window.open('https://stackblitz-labs.github.io/brainiac-coder/', '_blank')} />
-            <span className="font-medium text-sm text-gray-900 dark:text-white truncate">
+            <span className="font-medium text-sm text-bolt-elements-textPrimary truncate">
               {profile?.username || 'Guest User'}
             </span>
-            <div className="flex items-center justify-center w-[32px] h-[32px] overflow-hidden bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-500 rounded-full shrink-0">
+            <div className="flex items-center justify-center w-[32px] h-[32px] overflow-hidden bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary rounded-full shrink-0 border border-bolt-elements-borderColor">
               {profile?.avatar ? (
                 <img
                   src={profile.avatar}
                   alt={profile?.username || 'User'}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover rounded-full"
                   loading="eager"
                   decoding="sync"
                 />

@@ -10,15 +10,17 @@ export function Header() {
 
   return (
     <header
-      className={classNames('flex items-center px-4 border-b h-[var(--header-height)]', {
-        'border-transparent': !chat.started,
-        'border-bolt-elements-borderColor': chat.started,
-      })}
+      className={classNames(
+        'flex items-center px-6 border-b h-[var(--header-height)] bg-bolt-elements-background-depth-1 relative z-20',
+        {
+          'border-transparent': !chat.started,
+          'border-bolt-elements-borderColor': chat.started,
+        },
+      )}
     >
-      <div className="flex items-center gap-2 z-logo text-bolt-elements-textPrimary cursor-pointer">
-        <div className="i-ph:sidebar-simple-duotone text-xl" />
-        <a href="/" className="text-2xl font-semibold text-accent flex items-center gap-2">
-          <div className="i-ph:robot text-2xl text-red-500" />
+      <div className="flex items-center gap-2 z-logo text-bolt-elements-textPrimary">
+        <a href="/" className="text-xl font-semibold flex items-center gap-2">
+          <div className="i-ph:robot text-xl text-bolt-elements-textPrimary" />
           <span className="font-bold">Brainiac Coder</span>
         </a>
       </div>

@@ -67,8 +67,8 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
   return (
     <div
       className={classNames(
-        'relative bg-bolt-elements-background-depth-2 backdrop-blur p-3 rounded-lg border border-bolt-elements-borderColor relative w-full max-w-chat mx-auto z-prompt',
-
+        'relative bg-bolt-elements-background-depth-3 backdrop-blur p-4 rounded-xl border border-bolt-elements-borderColor relative w-full max-w-2xl mx-auto z-prompt shadow-lg',
+        'transition-all duration-300',
         /*
          * {
          *   'sticky bottom-2': chatStarted,
@@ -87,10 +87,10 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
             gradientUnits="userSpaceOnUse"
             gradientTransform="rotate(-45)"
           >
-            <stop offset="0%" stopColor="#EF4444" stopOpacity="0%"></stop>
-            <stop offset="40%" stopColor="#EF4444" stopOpacity="80%"></stop>
-            <stop offset="50%" stopColor="#EF4444" stopOpacity="80%"></stop>
-            <stop offset="100%" stopColor="#EF4444" stopOpacity="0%"></stop>
+            <stop offset="0%" stopColor="#000000" stopOpacity="0%"></stop>
+            <stop offset="40%" stopColor="#000000" stopOpacity="20%"></stop>
+            <stop offset="50%" stopColor="#000000" stopOpacity="20%"></stop>
+            <stop offset="100%" stopColor="#000000" stopOpacity="0%"></stop>
           </linearGradient>
           <linearGradient id="shine-gradient">
             <stop offset="0%" stopColor="white" stopOpacity="0%"></stop>
